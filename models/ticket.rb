@@ -9,6 +9,7 @@ class Ticket
     @id = details["id"].to_i if details["id"]
     @customer_id = details["customer_id"]
     @movie_id = details["movie_id"]
+    @showing_id = details["showing_id"]
   end
 
   def self.map_items(items)
@@ -17,20 +18,20 @@ class Ticket
 
   def save
     sql = "
-      INSERT INTO tickets (customer_id, movie_id)
-      VALUES ($1, $2)
+      INSERT INTO tickets (customer_id, movie_id, showing_id)
+      VALUES ($1, $2, $3)
       RETURNING id;
       "
-    ticket_info = SqlRunner.run(sql, [@customer_id, @movie_id])
+    ticket_info = SqlRunner.run(sql, [@customer_id, @movie_id, @showing_id])
     @id = ticket_info[0]["id"].to_i
   end
 
   def update
     sql = "
       UPDATE tickets SET
-      (customer_id, movie_id) = ($1, $2) WHERE id = $3;
+      (customer_id, movie_id, showing_id) = ($1, $2, $3) WHERE id = $4;
       "
-    SqlRunner.run(sql, [@customer_id, @movie_id, @id])
+    SqlRunner.run(sql, [@customer_id, @movie_id, @showing_id, @id])
   end
 
   def self.all

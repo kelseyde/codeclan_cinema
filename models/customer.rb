@@ -60,25 +60,38 @@ class Customer
     return result
   end
 
+  def tickets
+    sql = "SELECT * FROM tickets WHERE tickets.customer_id = $1"
+    result = Ticket.map_items(SqlRunner.run(sql, [@id]))
+    return result
+  end
+
   def ticket_count
     sql = "SELECT * FROM tickets WHERE tickets.customer_id = $1;"
     result = Ticket.map_items(SqlRunner.run(sql, [@id])).length
     return result
   end
 
-  def buy_ticket(cinema, *movies)
-    movies.each do |movie|
-      if !cinema.movies.include?(movie)
-        return "#{cinema.name} is not showing #{movie.title}."
-      elsif @cash < movie.price
-        return "Insufficient funds."
-      else
-        @cash -= movie.price
-        cinema.cash += movie.price
-        ticket = Ticket.new({"customer_id" => @id, "movie_id" => movie.id})
-        ticket.save
-        self.update
-      end
+  def can_I_afford?(movie)
+    return @cash >= movie.price
+  end
+
+  def buy_ticket(cinema, movie, showing)
+    if !cinema.movies.include?(movie)
+      return "#{cinema.name} is not showing #{movie.title}."
+    elsif showing.full?
+      return "#{movie.title} at #{showing.showing} is sold out."
+    elsif !self.can_I_afford?(movie)
+      return "Cannot afford #{movie.title}"
+    else
+      @cash -= movie.price
+      cinema.cash += movie.price
+      ticket = Ticket.new({
+        "customer_id" => @id,
+        "movie_id" => movie.id,
+        "showing_id" => showing.id})
+      ticket.save
+      self.update
     end
   end
 

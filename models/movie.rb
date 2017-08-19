@@ -1,4 +1,6 @@
 require_relative("../db/sql_runner")
+require_relative("showing")
+require_relative('ticket')
 
 class Movie
 
@@ -62,5 +64,32 @@ class Movie
   def customer_count
     return self.customers.count
   end
+
+  def showings
+    sql = "
+      SELECT showings.* FROM showings
+      WHERE showings.title = $1
+    "
+    objects = Showing.map_items(SqlRunner.run(sql, [@title]))
+    result = objects.map {|object| object.showing}
+    return result
+  end
+
+  def self.most_popular_movie
+    count_array = Movie.all.map {|movie| movie.customer_count}
+    for movie in Movie.all do
+      return movie if movie.customer_count == count_array.max
+    end
+  end
+
+  def most_popular_showing
+    sql = "SELECT * FROM showings WHERE showings.title = $1"
+    showings = Showing.map_items(SqlRunner.run(sql, [@title]))
+    count_array = showings.map {|showing| showing.tickets_sold}
+    for showing in showings do
+      return showing if showing.tickets_sold == count_array.max
+    end
+  end
+
 
 end
