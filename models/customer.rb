@@ -77,22 +77,17 @@ class Customer
   end
 
   def buy_ticket(cinema, movie, showing)
-    if !cinema.movies.include?(movie)
-      return "#{cinema.name} is not showing #{movie.title}."
-    elsif showing.full?
-      return "#{movie.title} at #{showing.showing} is sold out."
-    elsif !self.can_I_afford?(movie)
-      return "Cannot afford #{movie.title}"
-    else
-      @cash -= movie.price
-      cinema.cash += movie.price
-      ticket = Ticket.new({
-        "customer_id" => @id,
-        "movie_id" => movie.id,
-        "showing_id" => showing.id})
-      ticket.save
-      self.update
-    end
+    return "Not showing." if !cinema.movies.include?(movie)
+    return "Sold out." if showing.full?
+    return "Insufficient funds." if !self.can_I_afford?(movie)
+    @cash -= movie.price
+    cinema.cash += movie.price
+    ticket = Ticket.new({
+      "customer_id" => @id,
+      "movie_id" => movie.id,
+      "showing_id" => showing.id})
+    ticket.save
+    self.update
   end
 
 end
